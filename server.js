@@ -13,7 +13,7 @@ app.use(helmet({
     contentSecurityPolicy: false,
 }));
 
-// CORS configuration - UPDATED
+// CORS configuration - UPDATED with Netlify URL
 app.use(cors({
     origin: [
         "http://localhost:5500", 
@@ -21,7 +21,8 @@ app.use(cors({
         "https://richyardsinvestors.com", 
         "https://www.richyardsinvestors.com",
         "https://richyards-frontend.pages.dev",
-        "https://richyards-frontend.kvigforinvestors.workers.dev"
+        "https://richyards-frontend.kvigforinvestors.workers.dev",
+        "https://portol.netlify.app"
     ],
     credentials: true
 }));
