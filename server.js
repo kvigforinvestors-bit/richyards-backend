@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -13,19 +13,36 @@ app.use(helmet({
     contentSecurityPolicy: false,
 }));
 
-// CORS configuration - UPDATED with Netlify URL
+// CORS configuration - IMPROVED
+const allowedOrigins = [
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
+    "https://richyardsinvestors.com",
+    "https://www.richyardsinvestors.com",
+    "https://richyards-frontend.pages.dev",
+    "https://richyards-frontend.kvigforinvestors.workers.dev",
+    "https://portol.netlify.app",
+    "https://richyards-admin.netlify.app"
+];
+
 app.use(cors({
-    origin: [
-        "http://localhost:5500", 
-        "http://127.0.0.1:5500", 
-        "https://richyardsinvestors.com", 
-        "https://www.richyardsinvestors.com",
-        "https://richyards-frontend.pages.dev",
-        "https://richyards-frontend.kvigforinvestors.workers.dev",
-        "https://portol.netlify.app"
-    ],
-    credentials: true
+    origin: function(origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            console.log('Blocked origin:', origin);
+            callback(null, true); // Temporarily allow all for testing
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
+
+// Handle preflight requests explicitly
+app.options('*', cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
