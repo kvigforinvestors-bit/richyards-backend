@@ -2,6 +2,31 @@
 const router = express.Router();
 const { query } = require('../db');
 
+// WhatsApp notification function
+async function sendWhatsAppNotification(phoneNumber, name, email, subject, message) {
+    try {
+        // Using CallMeBot API (free, no authentication required)
+        // Replace '254115777999' with your WhatsApp number (include country code, no +)
+        const yourWhatsAppNumber = '254115777999'; // Your WhatsApp number
+        const apiUrl = `https://api.callmebot.com/whatsapp.php?phone=${yourWhatsAppNumber}&text=${encodeURIComponent(
+            `🔔 NEW CONTACT FORM SUBMISSION\n\n` +
+            `📝 From: ${name}\n` +
+            `📧 Email: ${email}\n` +
+            `📌 Subject: ${subject}\n` +
+            `💬 Message: ${message}\n\n` +
+            `🕐 Time: ${new Date().toLocaleString()}\n\n` +
+            `📱 Reply to: ${email}`
+        )}&apikey=8097822`;
+        
+        const response = await fetch(apiUrl);
+        console.log('WhatsApp notification sent:', response.status);
+        return true;
+    } catch (error) {
+        console.error('WhatsApp notification failed:', error.message);
+        return false;
+    }
+}
+
 // Submit contact form
 router.post('/', async (req, res) => {
     try {
@@ -11,10 +36,14 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ success: false, error: 'Name, email and message are required' });
         }
         
+        // Save to database
         const result = await query(
             'INSERT INTO contacts (name, email, subject, message) VALUES (?, ?, ?, ?)',
             [name, email, subject || 'General Inquiry', message]
         );
+        
+        // Send WhatsApp notification (don't await - let it run in background)
+        sendWhatsAppNotification(null, name, email, subject, message).catch(console.error);
         
         res.json({ success: true, message: 'Message sent successfully. We will contact you soon.', id: result.insertId });
     } catch (error) {

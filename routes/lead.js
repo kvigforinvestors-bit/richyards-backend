@@ -2,6 +2,30 @@
 const router = express.Router();
 const { query } = require('../db');
 
+// WhatsApp notification function
+async function sendWhatsAppNotification(phoneNumber, name, email, amount, sector, message) {
+    try {
+        const yourWhatsAppNumber = '254115777999'; // Your WhatsApp number
+        const apiUrl = `https://api.callmebot.com/whatsapp.php?phone=${yourWhatsAppNumber}&text=${encodeURIComponent(
+            `💰 NEW INVESTMENT LEAD\n\n` +
+            `👤 Name: ${name}\n` +
+            `📧 Email: ${email}\n` +
+            `💵 Amount: ${amount || 'Not specified'}\n` +
+            `🏭 Sector: ${sector || 'Not specified'}\n` +
+            `💬 Message: ${message || 'No message provided'}\n\n` +
+            `🕐 Time: ${new Date().toLocaleString()}\n\n` +
+            `📞 Reply to: ${email}`
+        )}&apikey=8097822`;
+        
+        const response = await fetch(apiUrl);
+        console.log('WhatsApp notification sent:', response.status);
+        return true;
+    } catch (error) {
+        console.error('WhatsApp notification failed:', error.message);
+        return false;
+    }
+}
+
 // Submit investment lead
 router.post('/', async (req, res) => {
     try {
@@ -15,6 +39,9 @@ router.post('/', async (req, res) => {
             'INSERT INTO investment_leads (name, email, phone, investment_amount, sector, message) VALUES (?, ?, ?, ?, ?, ?)',
             [name, email, phone || null, investment_amount || null, sector || null, message || null]
         );
+        
+        // Send WhatsApp notification
+        sendWhatsAppNotification(null, name, email, investment_amount, sector, message).catch(console.error);
         
         res.json({ success: true, message: 'Investment inquiry received. Our team will reach out shortly.', id: result.insertId });
     } catch (error) {
